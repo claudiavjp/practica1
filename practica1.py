@@ -6,7 +6,7 @@
 ########################################################################################
 
 from multiprocessing import Process
-from multiprocessing import BoundedSemaphore, Semaphore, Lock
+from multiprocessing import Semaphore, Lock
 from multiprocessing import current_process
 from multiprocessing import Value, Array
 import random
@@ -106,5 +106,6 @@ def main():
     for p in prodlst + cons:
         p.join()
     
-if _name_ == '_main_':
+if __name__ == '__main__':
     main()
+    
