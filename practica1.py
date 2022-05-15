@@ -25,7 +25,7 @@ def anadir_almacen(almacen, pid, valor, mutex):
     mutex.acquire()
     try:
         almacen[pid] = valor
-        delay(10)
+        delay(30)
     finally:
         mutex.release()
 
@@ -59,18 +59,27 @@ def posicion_del_minimo(almacen, mutex):
         mutex.release()
     return pos_min
 
+def anadir_valor_almacen(resultado, almacen, posicion, mutex):
+    mutex.acquire()
+    try:
+        resultado.append(almacen[posicion])
+    finally:
+        mutex.release()        
+
 #################################  FUNCIÓN CONSUMIDOR  #################################
-def consumidor(resultado, almacen, empty, nonEmpty, mutex, K):
+def consumidor(resultado, almacen, empty, nonEmpty, mutex):
     for sem in nonEmpty:
         sem.acquire()
-    while len(resultado) != K:
+    while True:
         pos_min = posicion_del_minimo(almacen, mutex)
-        resultado.append(almacen[pos_min])
-        empty[pos_min].release()
-        print(resultado[:])
-        #print("lista:", resultado[:], "almacen:", almacen[:])
-        nonEmpty[pos_min].acquire()
-        delay()
+        if almacen[pos_min] != -1:
+            anadir_valor_almacen(resultado, almacen, pos_min, mutex)
+            empty[pos_min].release()
+            #print(resultado[:])
+            nonEmpty[pos_min].acquire()
+            delay()
+        else:
+            break
     print("La lista ordenada es:", resultado[:])
 
 def main():
@@ -82,7 +91,7 @@ def main():
     for i in range(NPROD):
         long = random.randint(1, longMax)
         longitudes.append(long)
-    K = sum(longitudes)
+
     empty = []
     nonEmpty = []
     for i in range(NPROD):
@@ -98,7 +107,7 @@ def main():
 
     cons = [Process(target = consumidor,
                     name = "consumidor",
-                    args = ([], almacen, empty, nonEmpty, mutex, K))]
+                    args = ([], almacen, empty, nonEmpty, mutex))]
     
     for p in prodlst + cons:
         p.start()
